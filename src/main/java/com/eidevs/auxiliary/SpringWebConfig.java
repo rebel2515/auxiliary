@@ -5,7 +5,11 @@
  */
 package com.eidevs.auxiliary;
 
+import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import org.springframework.beans.BeansException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gcp.vision.CloudVisionTemplate;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -99,5 +103,4 @@ public class SpringWebConfig extends WebMvcConfigurerAdapter implements Applicat
         viewResolver.setTemplateEngine(templateEngine());
         return viewResolver;
     }
-
 }

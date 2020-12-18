@@ -9,16 +9,12 @@ package com.eidevs.auxiliary.service;
  *
  * @author eisrael
  */
-public interface ExtractionService {
-    String updateUserStatus();
+public interface MiddleWareService {
+    Boolean checkRequestHeaderValidity(String authorization);
     
-    String createBillerPackage();
+    String Withdrawal(String requestBody);
     
-    String sortFT();
+    String onlineAccountOpening(String requestBody);
     
-    //String updateStmtRecordWithClosingBalance();
-    
-    String updateStmtRecordWithOpeningBalance();
-    
-    String updatePHCNBillerCode();
+    String updateTellerTemp(String requestBody);
 }

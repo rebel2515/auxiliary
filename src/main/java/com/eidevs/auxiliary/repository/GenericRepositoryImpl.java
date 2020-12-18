@@ -43,4 +43,15 @@ public class GenericRepositoryImpl implements GenericRepository {
         }
         return selectedParam.get(0);
     }
+    
+    @Override
+    public String getBranchNameUsingCode(String branchCode) {
+        TypedQuery<String> query = em.createQuery("SELECT b.branchName FROM Branch b WHERE b.branchCode = :branchCode", String.class)
+                .setParameter("branchCode", branchCode);
+        List<String> branches = query.getResultList();
+        if (branches.isEmpty()) {
+            return null;
+        }
+        return branches.get(0);
+    }
 }

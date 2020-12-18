@@ -16,4 +16,6 @@ public interface GenericRepository {
     SystemParameters getSystemParameterUsingName(String paramName);
 
     String getParameterValue(String paramName);
+        
+    String getBranchNameUsingCode(String branchCode);
 }

@@ -5,11 +5,12 @@
  */
 package com.eidevs.auxiliary.service;
 
+import com.eidevs.auxiliary.model.AccountNumberDump;
 import com.eidevs.auxiliary.model.DisableUsers;
 import com.eidevs.auxiliary.model.FTMissingToday;
 import com.eidevs.auxiliary.model.FTRecord;
 import com.eidevs.auxiliary.model.StmtExtraction;
-import com.eidevs.auxiliary.model.TellerHistory;
+import com.eidevs.auxiliary.model.StmtExtractionOpeningBal;
 import com.eidevs.auxiliary.model.Users;
 import com.eidevs.auxiliary.model.XpressPayBillerPackage;
 import com.eidevs.auxiliary.payload.AccountPayload;
@@ -265,94 +266,219 @@ public class ExtractionServiceImpl implements ExtractionService {
         return responsePayload;
     }
 
+//    @Override
+//    public String updateStmtRecordWithClosingBalance() {
+//        List<StmtExtraction> records = extractionRepository.getAllRecordWhereAmountIsNull();
+//        if (records != null) {
+//            for (StmtExtraction rec : records) {
+//                String response = "";
+//                String ofsRequest = "";
+//                String accountNumber = rec.getAccountNumber();
+//                String category = rec.getCategory();
+//                String startDate = "20200101";
+//                String endDate = "20200930";
+//
+//                ofsRequest = "\"" + "ENQUIRY.SELECT,," + env.getProperty("a24core.T24.inputter.login.credentials").trim()
+//                        + "," + env.getProperty("a24core.account.statement").trim() + ":EQ=" + accountNumber
+//                        + ",BOOKING.DATE:RG=" + startDate + " " + endDate
+//                        + "\"";
+//
+//                //Check the environment pointed to
+//                response = genericService.ofsResponse(env.getProperty("a24core.accountStatement"), ofsRequest);
+//                if (response == null) {
+//                    return messageSource.getMessage("appMessages.invalidMenuPointer", new Object[0], Locale.ENGLISH);
+//                }
+//
+//                LOGGER.log(Level.INFO, "RESPONSE FOR {0} : ".concat(response), new Object[]{accountNumber});
+//
+//                //Split the transactions
+//                //Split the string into 2 and remove the header
+//                LOGGER.log(Level.INFO, "Account Statement for - ".concat(rec.getAccountNumber()));
+//                String[] splitString = response.split("JV.NO::JV.NO,");
+//                if (splitString.length == 2) {
+//                    String[] headerString = splitString[1].replace("\\t\\", "*").replace("\\B\\", "").replace("\\\",\\\",\\\"", "|").split("\\|");
+//                    if (headerString.length == 1) {
+//                        if (!headerString[0].contains("NO RECORDS RETURNED BY ROUTINE BASED SELECTION")) {
+//                            String stringReplace = headerString[0].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
+//                            String[] detailsSplitString = stringReplace.split("\\|");
+//
+//                            for (int i = 0; i < detailsSplitString.length; i = i + 1) {
+//                                String[] fields = detailsSplitString[i].split("\\*");
+//                                if (fields.length >= 7) {
+//                                    rec.setAmount1(fields[12].trim());
+//                                    extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if (headerString.length > 1) {
+//                        String stringReplace = headerString[1].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
+//                        String[] detailsSplitString = stringReplace.split("\\|");
+//
+//                        for (int i = 0; i < detailsSplitString.length; i = i + 1) {
+//                            String[] fields = detailsSplitString[i].split("\\*");
+//                            if (fields.length >= 7) {
+//                                rec.setAmount1(fields[12].trim());
+//                                extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
+//                            }
+//                        }
+//                    }
+//                }
+//                if (splitString.length == 1) {
+//                    String[] headerString = splitString[0].replace("\\t\\", "*").replace("\\B\\", "").replace("\\\",\\\",\\\"", "|").split("\\|");
+//                    if (headerString.length == 1) {
+//                        if (!headerString[0].contains("NO RECORDS RETURNED BY ROUTINE BASED SELECTION")) {
+//                            String stringReplace = headerString[0].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
+//                            String[] detailsSplitString = stringReplace.split("\\|");
+//
+//                            for (int i = 0; i < detailsSplitString.length; i = i + 1) {
+//                                String[] fields = detailsSplitString[i].split("\\*");
+//                                if (fields.length >= 7) {
+//                                    rec.setAmount1(fields[12].trim());
+//                                    extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if (headerString.length > 1) {
+//                        String stringReplace = headerString[1].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
+//                        String[] detailsSplitString = stringReplace.split("\\|");
+//
+//                        for (int i = 0; i < detailsSplitString.length; i = i + 1) {
+//                            String[] fields = detailsSplitString[i].split("\\*");
+//                            if (fields.length >= 7) {
+//                                rec.setAmount1(fields[12].trim());
+//                                extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return "Completed";
+//    }
     @Override
-    public String updateStmtRecordWithClosingBalance() {
-        List<StmtExtraction> records = extractionRepository.getAllRecordWhereAmountIsNull();
+    public String updateStmtRecordWithOpeningBalance() {
+        List<AccountNumberDump> records = extractionRepository.getAccountNumber();
         if (records != null) {
-            for (StmtExtraction rec : records) {
-                String response = "";
-                String ofsRequest = "";
-                String accountNumber = rec.getAccountNumber();
-                if (!accountNumber.startsWith("NGN")) {
-                    String startDate = "20200101";
-                    String endDate = "20200930";
+            for (AccountNumberDump str : records) {
 
-                    ofsRequest = "\"" + "ENQUIRY.SELECT,," + env.getProperty("a24core.T24.inputter.login.credentials").trim()
-                            + "," + env.getProperty("a24core.account.statement").trim() + ":EQ=" + accountNumber
-                            + ",BOOKING.DATE:RG=" + startDate + " " + endDate
-                            + "\"";
+                String ofsRequest = "\"" + "ENQUIRY.SELECT,," + env.getProperty("a24core.T24.inputter.login.credentials").trim()
+                        + "," + env.getProperty("a24core.account.statement").trim() + ":EQ=" + str.getAccountNumber()
+                        + ",BOOKING.DATE:EQ=20200101"
+                        + "\"";
 
-                    //Check the environment pointed to
-                    response = genericService.ofsResponse(env.getProperty("a24core.accountStatement"), ofsRequest);
-                    if (response == null) {
-                        return messageSource.getMessage("appMessages.invalidMenuPointer", new Object[0], Locale.ENGLISH);
-                    }
-
-                    //Split the transactions
-                    //Split the string into 2 and remove the header
-                    LOGGER.log(Level.INFO, "Account Statement for - ".concat(rec.getAccountNumber()));
-                    String[] splitString = response.split("JV.NO::JV.NO,");
-                    if (splitString.length == 2) {
-                        String[] headerString = splitString[1].replace("\\t\\", "*").replace("\\B\\", "").replace("\\\",\\\",\\\"", "|").split("\\|");
-                        if (headerString.length == 1) {
-                            if (!headerString[0].contains("NO RECORDS RETURNED BY ROUTINE BASED SELECTION")) {
-                                String stringReplace = headerString[0].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
-                                String[] detailsSplitString = stringReplace.split("\\|");
-
-                                for (int i = 0; i < detailsSplitString.length; i = i + 1) {
-                                    String[] fields = detailsSplitString[i].split("\\*");
-                                    if (fields.length >= 7) {
-                                        rec.setAmount1(fields[11].trim());
-                                        extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
-                                    }
-                                }
-                            }
-                        }
-                        if (headerString.length > 1) {
-                            String stringReplace = headerString[1].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
-                            String[] detailsSplitString = stringReplace.split("\\|");
-
-                            for (int i = 0; i < detailsSplitString.length; i = i + 1) {
-                                String[] fields = detailsSplitString[i].split("\\*");
-                                if (fields.length >= 7) {
-                                    rec.setAmount1(fields[11].trim());
-                                    extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
-                                }
-                            }
-                        }
-                    }
-                    if (splitString.length == 1) {
-                        String[] headerString = splitString[0].replace("\\t\\", "*").replace("\\B\\", "").replace("\\\",\\\",\\\"", "|").split("\\|");
-                        if (headerString.length == 1) {
-                            if (!headerString[0].contains("NO RECORDS RETURNED BY ROUTINE BASED SELECTION")) {
-                                String stringReplace = headerString[0].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
-                                String[] detailsSplitString = stringReplace.split("\\|");
-
-                                for (int i = 0; i < detailsSplitString.length; i = i + 1) {
-                                    String[] fields = detailsSplitString[i].split("\\*");
-                                    if (fields.length >= 7) {
-                                        rec.setAmount1(fields[11].trim());
-                                        extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
-                                    }
-                                }
-                            }
-                        }
-                        if (headerString.length > 1) {
-                            String stringReplace = headerString[1].replace(",\\\"", "|").replace("\\", "").replace("\"", "");
-                            String[] detailsSplitString = stringReplace.split("\\|");
-
-                            for (int i = 0; i < detailsSplitString.length; i = i + 1) {
-                                String[] fields = detailsSplitString[i].split("\\*");
-                                if (fields.length >= 7) {
-                                    rec.setAmount1(fields[11].trim());
-                                    extractionRepository.updateStmtRecordWhereAmountIsNull(rec);
-                                }
-                            }
+                //Check the environment pointed to
+                String response = genericService.ofsResponse(env.getProperty("a24core.accountStatement"), ofsRequest);
+                if (response == null) {
+                    return messageSource.getMessage("appMessages.invalidMenuPointer", new Object[0], Locale.ENGLISH);
+                }
+                String[] splitString = response.split("JV.NO::JV.NO,");
+                String[] headerString = splitString[1].replace("\\t\\", "*").replace("\\B\\", "").replace("\\\",\\\",\\\"", "|").split("\\|");
+                for (int i = 0; i < headerString.length; i = i + 1) {
+                    String[] fields = headerString[i].replace("\\\",\\\"", "*").split("\\*");
+                    if (fields.length == 7) {
+                        if (!fields[4].trim().equals("0.00")) {
+                            StmtExtractionOpeningBal rec = new StmtExtractionOpeningBal();
+                            rec.setAmount(new BigDecimal(fields[4].trim().replace(",", "")));
+                            rec.setNarration("Opening Balance");
+                            rec.setFullNarration("Opening Balance brought forward");
+                            rec.setBookingDate("2020-01-01");
+                            rec.setValueDate("2020-01-01");
+                            rec.setInputter("67_COB.USER!");
+                            rec.setAuthorizer("67_COB.USER!");
+                            rec.setAccountName(fields[2]);
+                            rec.setAccountNumber(str.getAccountNumber());
+                            rec.setStmtId("S!NGN146");
+                            extractionRepository.createStmtRecordWithOpeningBalance(rec);
+                            extractionRepository.deleteAccountNumber(str);
+                        } else {
+                            extractionRepository.deleteAccountNumber(str);
                         }
                     }
                 }
             }
         }
         return "Completed";
+    }
+
+    @Override
+    public String updatePHCNBillerCode() {
+        List<XpressPayBillerPackage> phcnBouquet = extractionRepository.allPHCNBouquet();
+        if(phcnBouquet != null){
+            for(XpressPayBillerPackage p : phcnBouquet){
+                String packageName = p.getPackageName();
+                if (packageName.equals("EKO Electric Postpaid")) {
+                    p.setBillerId(env.getProperty("biller.code.ekoElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("EKO Electric Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.ekoElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Enugu Electric Postpaid")) {
+                    p.setBillerId(env.getProperty("biller.code.enuguElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Enugu Electric Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.enuguElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Ibadan Electric (POSTPAID)")) {
+                    p.setBillerId(env.getProperty("biller.code.ibadanElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Ibadan Electric (PREPAID)")) {
+                    p.setBillerId(env.getProperty("biller.code.ibadanElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Ikeja Electric POSTPAID")) {
+                    p.setBillerId(env.getProperty("biller.code.ikejaElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Ikeja Electric PREPAID")) {
+                    p.setBillerId(env.getProperty("biller.code.ikejaElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Jos Electric Postpaid")) {
+                    p.setBillerId(env.getProperty("biller.code.josElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Jos Electric Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.josElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Kaduna Electric Postpaid")) {
+                    p.setBillerId(env.getProperty("biller.code.kadunaElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Kaduna Electric Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.kadunaElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Kano Postpaid")) {
+                    p.setBillerId(env.getProperty("biller.code.kanoElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Kano Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.kanoElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("PHED2 Postpaid") || packageName.equals("PHED2 Prepaid") ) {
+                    p.setBillerId(env.getProperty("biller.code.PHEDElectricity"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Abuja POSTPAID")) {
+                    p.setBillerId(env.getProperty("biller.code.abujaElectricity.postpaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+                if (packageName.equals("Abuja Prepaid")) {
+                    p.setBillerId(env.getProperty("biller.code.abujaElectricity.prepaid"));
+                    extractionRepository.updatePHCNBillerCode(p);
+                }
+            }
+            return "Completed";
+        }
+        return "null";
     }
 }

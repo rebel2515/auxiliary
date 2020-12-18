@@ -3,11 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package  com.eidevs.auxiliary.service;
+package com.eidevs.auxiliary.service;
 
-import  com.eidevs.auxiliary.payload.TextValueDto;
+import com.eidevs.auxiliary.payload.MiddleWarePayload;
+import com.eidevs.auxiliary.payload.TextValueDto;
+import com.eidevs.auxiliary.repository.ExtractionRepository;
 import java.util.List;
-import  com.eidevs.auxiliary.repository.GenericRepository;
+import com.eidevs.auxiliary.repository.GenericRepository;
 import com.google.gson.Gson;
 import java.math.RoundingMode;
 import java.security.MessageDigest;
@@ -39,6 +41,8 @@ public class GenericServiceImpl implements GenericService {
     @Autowired
     GenericRepository genericRepository;
     @Autowired
+    ExtractionRepository extractionRepository;
+    @Autowired
     MessageSource messageSource;
     @Autowired
     Environment env;
@@ -47,7 +51,7 @@ public class GenericServiceImpl implements GenericService {
     private static String SIGNATURE = "";
     private static String TIMESTAMP = "";
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    
+
     private static String BASE_URL = "";
     private static String USER_SECRET_KEY = "";
     private static String USERNAME = "";
@@ -62,6 +66,11 @@ public class GenericServiceImpl implements GenericService {
 
     Gson gson;
     RestTemplate restTemplate;
+
+    public GenericServiceImpl() {
+        gson = new Gson();
+        restTemplate = new RestTemplate();
+    }
 
     @Override
     public String endPointPostRequest(String url, String requestJson) {
@@ -112,7 +121,7 @@ public class GenericServiceImpl implements GenericService {
         client.close();
         return responseString;
     }
-    
+
     @Override
     public String endPointPostRequest(String url, String requestJson, String username, String password) {
         USERNAME = username;
@@ -432,7 +441,7 @@ public class GenericServiceImpl implements GenericService {
         text = text.replaceAll("\\p{C}", "");
         return text.trim();
     }
-    
+
     @Override
     public String cleanTextForT24(String textToClean) {
         //Remove the following , & ; etc from the text
@@ -446,7 +455,7 @@ public class GenericServiceImpl implements GenericService {
         }
         return replacedText;
     }
-    
+
     @Override
     public char getTimePeriod() {
         char timePeriod = 'M';
@@ -474,7 +483,7 @@ public class GenericServiceImpl implements GenericService {
         }
         return timePeriod;
     }
-    
+
     @Override
     public String formatAmountWithComma(String amount) {
         if (amount == null || amount.equals("")) {
@@ -492,10 +501,60 @@ public class GenericServiceImpl implements GenericService {
         String formattedAmount = nf.format(value);
         return formattedAmount;
     }
-    
+
     @Override
     public String getAuthorizationHeader(String username, String password) {
-        AUTHORIZATION = "Basic "+ Base64.getEncoder().encodeToString((username.concat(":").concat(password)).getBytes());
+        AUTHORIZATION = "Basic " + Base64.getEncoder().encodeToString((username.concat(":").concat(password)).getBytes());
         return AUTHORIZATION;
+    }
+
+    @Override
+    public String getPostingDate() {
+        //This returns the current posting date
+        String ofsRequest = "\"" + "DATES,INPUT/S/PROCESS," + env.getProperty("webservice.T24.inputter.login.credentials") + "/,NG0010001" + "\"";
+
+        String response = endPointPostRequest("/generic/payment/postofs", ofsRequest,
+                env.getProperty("ussd.middleware.production.username"),
+                env.getProperty("ussd.middleware.production.password"));
+        if (response == null) {
+            return messageSource.getMessage("appMessages.invalidPostingDate", new Object[0], Locale.ENGLISH);
+        }
+
+        String t24Date = getStringFromOFSResponse(response, "TODAY:1:1");
+        return t24Date;
+    }
+
+    @Override
+    public String hashKey(String requestBody) {
+        MiddleWarePayload payload = gson.fromJson(requestBody, MiddleWarePayload.class);
+        if (payload != null) {
+            String hashSecretKey = env.getProperty("accion.authorization.secret.key").trim();
+            String hashKey = env.getProperty("accion.authorization.signature.method").trim();
+            //Hash the request Sha512 (refernceID + Phoneno + Hash) 
+            String hashString = payload.getValidationRequest().getReferenceID().trim()
+                    + payload.getValidationRequest().getOtherDetails().getPhoneNo().trim()
+                    + hashSecretKey;
+            String hashValue = hash(hashString, hashKey);
+            MiddleWarePayload response = new MiddleWarePayload();
+            response.setResponseCode("00");
+            response.setResponseMessage(hashValue);
+            String responseBody = gson.toJson(response, MiddleWarePayload.class);
+            return responseBody;
+        }
+        MiddleWarePayload response = new MiddleWarePayload();
+        response.setResponseCode("99");
+        response.setResponseMessage("");
+        String responseBody = gson.toJson(response, MiddleWarePayload.class);
+        return responseBody;
+    }
+    
+    @Override
+    public String getBranchNameUsingCode(String branchCode) {
+        return genericRepository.getBranchNameUsingCode(branchCode);
+    }
+
+    @Override
+    public String getTellerName(String tellerId, String branchCode) {
+        return extractionRepository.getTellerName(tellerId, branchCode);
     }
 }

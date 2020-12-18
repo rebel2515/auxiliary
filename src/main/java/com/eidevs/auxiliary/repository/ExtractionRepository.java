@@ -5,14 +5,18 @@
  */
 package  com.eidevs.auxiliary.repository;
 
+import com.eidevs.auxiliary.model.AccountNumberDump;
 import com.eidevs.auxiliary.model.DisableUsers;
 import com.eidevs.auxiliary.model.FTMissingToday;
 import com.eidevs.auxiliary.model.FTRecord;
 import com.eidevs.auxiliary.model.StmtExtraction;
-import  com.eidevs.auxiliary.model.T24Accounts;
+import com.eidevs.auxiliary.model.StmtExtractionOpeningBal;
+import com.eidevs.auxiliary.model.Teller;
 import com.eidevs.auxiliary.model.TellerHistory;
+import com.eidevs.auxiliary.model.TellerTemp;
 import com.eidevs.auxiliary.model.Users;
 import com.eidevs.auxiliary.model.XpressPayBillerPackage;
+import com.eidevs.auxiliary.model.customerAccount.T24Accounts;
 import java.util.List;
 
 /**
@@ -39,7 +43,31 @@ public interface ExtractionRepository {
     
     void updateFT(FTRecord ft);
     
-    List<StmtExtraction> getAllRecordWhereAmountIsNull();
+    List<String> getAllRecordWhereAmountIsNull();
     
     void updateStmtRecordWhereAmountIsNull(StmtExtraction stmt);
+    
+    void createStmtRecordWithOpeningBalance(StmtExtractionOpeningBal stmt);
+    
+    List<AccountNumberDump> getAccountNumber();
+    
+    void deleteAccountNumber(AccountNumberDump acNO);
+    
+    void updatePHCNBillerCode(XpressPayBillerPackage biller);
+    
+    List<XpressPayBillerPackage> allPHCNBouquet();
+    
+    Teller getTellerRecord(String branchCode, String tellerAccount);
+    
+    TellerTemp createTempRecord(TellerTemp record);
+    
+    String getTellerName(String tellerId, String branchCode);
+    
+    String getCorrespondingBankName(String accountNumber);
+    
+    Teller getTellerWithBranchCode(String branchCode);
+    
+    String getAccountName(String accountNumber);
+    
+    TellerTemp getRecordWithTransId(String transId);
 }

@@ -48,4 +48,12 @@ public interface GenericService {
     String formatAmountWithComma(String amount);
     
     String getAuthorizationHeader(String username, String password);
+    
+    String getPostingDate();
+    
+    String hashKey(String requestBody);
+    
+    String getBranchNameUsingCode(String branchCode);
+    
+    String getTellerName(String tellerId, String branchCode);
 }
