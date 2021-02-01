@@ -56,9 +56,16 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void updateUserStatus(Users user) {
         em.merge(user);
+        em.flush();
+    }
+
+    @Override
+    @Transactional(transactionManager = "coreTransactionManager")
+    public void deleteDisableUser(DisableUsers disableUsers) {
+        em.remove(em.contains(disableUsers) ? disableUsers : em.merge(disableUsers));
         em.flush();
     }
 
@@ -74,7 +81,7 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void createBillerPackage(XpressPayBillerPackage biller) {
         em.persist(biller);
         em.flush();
@@ -102,14 +109,14 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void createMissingFTRecord(FTMissingToday rec) {
         em.persist(rec);
         em.flush();
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void updateFT(FTRecord ft) {
         em.merge(ft);
         em.flush();
@@ -126,14 +133,14 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void updateStmtRecordWhereAmountIsNull(StmtExtraction stmt) {
         em.merge(stmt);
         em.flush();
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void createStmtRecordWithOpeningBalance(StmtExtractionOpeningBal stmt) {
         em.persist(stmt);
         em.flush();
@@ -150,14 +157,14 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void deleteAccountNumber(AccountNumberDump acNO) {
         em.remove(em.contains(acNO) ? acNO : em.merge(acNO));
         em.flush();
     }
 
     @Override
-    @Transactional
+    @Transactional(transactionManager = "coreTransactionManager")
     public void updatePHCNBillerCode(XpressPayBillerPackage biller) {
         em.merge(biller);
         em.flush();
@@ -248,5 +255,42 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
             return null;
         }
         return records.get(0);
+    }
+
+    @Override
+    @Transactional(transactionManager = "coreTransactionManager")
+    public TellerHistory createTellerHistory(TellerHistory tellerHistory) {
+        em.persist(tellerHistory);
+        em.flush();
+        return tellerHistory;
+    }
+
+    @Override
+    public TellerHistory getRecordFromHistoryWithTransId(String transId) {
+        TypedQuery<TellerHistory> query = em.createQuery("SELECT s FROM TellerHistory s WHERE s.transId =:transId", TellerHistory.class)
+                .setParameter("transId", transId);
+        List<TellerHistory> records = query.getResultList();
+        if (records.isEmpty()) {
+            return null;
+        }
+        return records.get(0);
+    }
+
+    @Override
+    public List<TellerTemp> getAllPendingTransactions() {
+        TypedQuery<TellerTemp> query = em.createQuery("SELECT s FROM TellerTemp s WHERE s.transId IS NOT NULL AND s.status IS NOT NULL", TellerTemp.class);
+        List<TellerTemp> records = query.getResultList();
+        if (records.isEmpty()) {
+            return null;
+        }
+        return records;
+    }
+
+    @Override
+    @Transactional(transactionManager = "coreTransactionManager")
+    public TellerTemp dropTellerTemp(TellerTemp tellerTemp) {
+        em.remove(em.contains(tellerTemp) ? tellerTemp : em.merge(tellerTemp));
+        em.flush();
+        return tellerTemp;
     }
 }

@@ -5,6 +5,10 @@
  */
 package com.eidevs.auxiliary.service;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
+
 /**
  *
  * @author eisrael
@@ -19,6 +23,4 @@ public interface ExtractionService {
     //String updateStmtRecordWithClosingBalance();
     
     String updateStmtRecordWithOpeningBalance();
-    
-    String updatePHCNBillerCode();
 }

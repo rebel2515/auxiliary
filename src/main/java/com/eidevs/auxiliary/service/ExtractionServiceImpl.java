@@ -18,6 +18,8 @@ import com.eidevs.auxiliary.payload.ListItems;
 import com.eidevs.auxiliary.payload.ProductFields;
 import com.eidevs.auxiliary.repository.ExtractionRepository;
 import com.google.gson.Gson;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -71,7 +74,9 @@ public class ExtractionServiceImpl implements ExtractionService {
                 if (userDetails != null) {
                     if (userDetails.getStatus().equalsIgnoreCase("Enabled")) {
                         userDetails.setStatus("Disabled");
+                        userDetails.setUserOnline(false);
                         extractionRepository.updateUserStatus(userDetails);
+                        extractionRepository.deleteDisableUser(user);
                         LOGGER.log(Level.INFO, "User ".concat(user.getUsername()).concat(" has been disabled"));
                     }
                 }
@@ -400,85 +405,5 @@ public class ExtractionServiceImpl implements ExtractionService {
             }
         }
         return "Completed";
-    }
-
-    @Override
-    public String updatePHCNBillerCode() {
-        List<XpressPayBillerPackage> phcnBouquet = extractionRepository.allPHCNBouquet();
-        if(phcnBouquet != null){
-            for(XpressPayBillerPackage p : phcnBouquet){
-                String packageName = p.getPackageName();
-                if (packageName.equals("EKO Electric Postpaid")) {
-                    p.setBillerId(env.getProperty("biller.code.ekoElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("EKO Electric Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.ekoElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Enugu Electric Postpaid")) {
-                    p.setBillerId(env.getProperty("biller.code.enuguElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Enugu Electric Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.enuguElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Ibadan Electric (POSTPAID)")) {
-                    p.setBillerId(env.getProperty("biller.code.ibadanElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Ibadan Electric (PREPAID)")) {
-                    p.setBillerId(env.getProperty("biller.code.ibadanElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Ikeja Electric POSTPAID")) {
-                    p.setBillerId(env.getProperty("biller.code.ikejaElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Ikeja Electric PREPAID")) {
-                    p.setBillerId(env.getProperty("biller.code.ikejaElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Jos Electric Postpaid")) {
-                    p.setBillerId(env.getProperty("biller.code.josElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Jos Electric Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.josElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Kaduna Electric Postpaid")) {
-                    p.setBillerId(env.getProperty("biller.code.kadunaElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Kaduna Electric Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.kadunaElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Kano Postpaid")) {
-                    p.setBillerId(env.getProperty("biller.code.kanoElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Kano Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.kanoElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("PHED2 Postpaid") || packageName.equals("PHED2 Prepaid") ) {
-                    p.setBillerId(env.getProperty("biller.code.PHEDElectricity"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Abuja POSTPAID")) {
-                    p.setBillerId(env.getProperty("biller.code.abujaElectricity.postpaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-                if (packageName.equals("Abuja Prepaid")) {
-                    p.setBillerId(env.getProperty("biller.code.abujaElectricity.prepaid"));
-                    extractionRepository.updatePHCNBillerCode(p);
-                }
-            }
-            return "Completed";
-        }
-        return "null";
     }
 }

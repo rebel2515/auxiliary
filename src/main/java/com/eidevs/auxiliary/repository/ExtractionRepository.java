@@ -31,6 +31,8 @@ public interface ExtractionRepository {
     
     void updateUserStatus(Users user);
     
+    void deleteDisableUser(DisableUsers disableUsers);
+    
     Users getUserWithUsername(String username);
     
     void createBillerPackage(XpressPayBillerPackage biller);
@@ -70,4 +72,12 @@ public interface ExtractionRepository {
     String getAccountName(String accountNumber);
     
     TellerTemp getRecordWithTransId(String transId);
+    
+    TellerHistory createTellerHistory(TellerHistory tellerHistory);
+    
+    TellerHistory getRecordFromHistoryWithTransId(String transId);
+    
+    List<TellerTemp> getAllPendingTransactions();
+    
+    TellerTemp dropTellerTemp(TellerTemp tellerTemp);
 }

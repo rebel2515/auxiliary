@@ -17,4 +17,8 @@ public interface MiddleWareService {
     String onlineAccountOpening(String requestBody);
     
     String updateTellerTemp(String requestBody);
+    
+    String updateTellerHistory();
+    
+    String writeCustomerDetail(String requestBody);
 }

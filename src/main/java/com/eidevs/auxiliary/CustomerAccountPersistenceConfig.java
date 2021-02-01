@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @PropertySource("classpath:application.properties")
 @EnableJpaRepositories(
-        basePackages = "com.accionmfb.ussd.repository.customerAccount",
+        basePackages = "com.eidevs.auxiliary.repository.customerAccount",
         entityManagerFactoryRef = "customerAccountEntityManager",
         transactionManagerRef = "customerAccountTransactionManager"
 )
@@ -56,7 +56,7 @@ public class CustomerAccountPersistenceConfig {
     public LocalContainerEntityManagerFactoryBean customerAccountEntityManager() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource());
-        em.setPackagesToScan(new String[]{"com.accionmfb.ussd.model.customerAccount"});
+        em.setPackagesToScan(new String[]{"com.eidevs.auxiliary.model.customerAccount"});
         em.setPersistenceUnitName("customerAccountPersistenceUnit");
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);

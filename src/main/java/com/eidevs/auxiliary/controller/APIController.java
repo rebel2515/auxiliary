@@ -8,7 +8,6 @@ package com.eidevs.auxiliary.controller;
 import com.eidevs.auxiliary.exceptions.AuthorizationCredentialException;
 import com.eidevs.auxiliary.service.ExtractionService;
 import com.eidevs.auxiliary.service.GenericService;
-import com.eidevs.auxiliary.service.ImageProcess;
 import com.eidevs.auxiliary.service.MiddleWareService;
 import com.google.gson.Gson;
 import javax.servlet.http.HttpServletRequest;
@@ -89,7 +88,7 @@ public class APIController {
     public String hashValue(@RequestBody String requestBody, HttpServletRequest request) {
         return genericService.hashKey(requestBody);
     }
-    
+
     @PostMapping(value = "/account-opening", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public String onlineAccountOpening(@RequestHeader(value = "Authorization") String authorization, @RequestBody String requestPayload, HttpServletRequest request) throws Exception {
@@ -100,13 +99,7 @@ public class APIController {
 
         return middleWareService.onlineAccountOpening(requestPayload);
     }
-    
-    @GetMapping("/billerCode/update")
-    public String updatePHCNBillerCode() {
-        String result = extractionService.updatePHCNBillerCode();
-        return result;
-    }
-    
+
     @PostMapping(value = "/update/temp/till-transfer", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public String updateTellerTemp(@RequestHeader(value = "Authorization") String authorization, @RequestBody String requestPayload, HttpServletRequest request) throws Exception {
@@ -116,5 +109,22 @@ public class APIController {
         }
 
         return middleWareService.updateTellerTemp(requestPayload);
+    }
+
+    @GetMapping("/update/teller-history")
+    public String updateTellerHistory() {
+        String result = middleWareService.updateTellerHistory();
+        return result;
+    }
+    
+    @PostMapping(value = "/write/customer-details", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    public String writeCustomerDetails(@RequestHeader(value = "Authorization") String authorization, @RequestBody String requestPayload, HttpServletRequest request) throws Exception {
+        Boolean requestHeaderValid = middleWareService.checkRequestHeaderValidity(authorization);
+        if (!requestHeaderValid) {
+            throw new AuthorizationCredentialException();
+        }
+
+        return middleWareService.writeCustomerDetail(requestPayload);
     }
 }
