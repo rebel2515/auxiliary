@@ -127,4 +127,10 @@ public class APIController {
 
         return middleWareService.writeCustomerDetail(requestPayload);
     }
+    
+    @GetMapping("/users/aml")
+    public String createAMLUsers() {
+        String result = extractionService.createAMLUsers();
+        return result;
+    }
 }

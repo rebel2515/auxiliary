@@ -5,6 +5,7 @@
  */
 package com.eidevs.auxiliary.service;
 
+import com.eidevs.auxiliary.model.AMLUsers;
 import com.eidevs.auxiliary.model.AccountNumberDump;
 import com.eidevs.auxiliary.model.DisableUsers;
 import com.eidevs.auxiliary.model.FTMissingToday;
@@ -22,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -405,5 +408,55 @@ public class ExtractionServiceImpl implements ExtractionService {
             }
         }
         return "Completed";
+    }
+
+    @Override
+    public String createAMLUsers() {
+        List<AMLUsers> amlUsers = extractionRepository.allAMLUser();
+        if (amlUsers != null) {
+            for (AMLUsers amlUser : amlUsers) {
+                String[] email = amlUser.getEmail().split("@");
+                String username = email[0];
+                Users user = extractionRepository.getUserWithEmail(amlUser.getEmail());
+                if (user != null) {
+                    if (user.getStatus().equals("Disabled")) {
+                        user.setStatus("Enabled");
+                        if (!user.getPassword().equals("$2a$10$d1dlOhJXQXqUOF9VLlwLkOEYBFbLKPcBZKoIH.oqMupPi9PTIveP6")) {
+                            user.setPassword("$2a$10$d1dlOhJXQXqUOF9VLlwLkOEYBFbLKPcBZKoIH.oqMupPi9PTIveP6");
+                        }
+                        extractionRepository.updateUserStatus(user);
+                        extractionRepository.deleteAMLUser(amlUser);
+                    } else {
+                        extractionRepository.deleteAMLUser(amlUser);
+                    }
+                } else {
+                    Users newUser = new Users();
+                    newUser.setApprovalLevel(0);
+                    newUser.setBranch("Head Office");
+                    newUser.setCreatedAt(LocalDateTime.now());
+                    newUser.setCreatedBy("bokon");
+                    newUser.setDefaultPassword("");
+                    newUser.setEmail(amlUser.getEmail());
+                    newUser.setLastLogin(LocalDate.now().minusDays(1));
+                    newUser.setLastName(amlUser.getLastName());
+                    newUser.setOtherName(amlUser.getFirstName().concat(" ").concat(amlUser.getMiddleName()));
+                    newUser.setPassword("$2a$10$d1dlOhJXQXqUOF9VLlwLkOEYBFbLKPcBZKoIH.oqMupPi9PTIveP6");
+                    newUser.setPasswordChangeDate(LocalDate.now());
+                    newUser.setPasswordTry(0);
+                    newUser.setResetTime(LocalDateTime.parse("1900-01-01T00:00:00"));
+                    newUser.setStatus("Enabled");
+                    newUser.setUpdatedAt(LocalDateTime.parse("1900-01-01T00:00:00"));
+                    newUser.setUpdatedBy("");
+                    newUser.setUserOnline(false);
+                    newUser.setUserType("AMLUser");
+                    newUser.setUsername(username);
+
+                    extractionRepository.createUser(newUser);
+                    extractionRepository.deleteAMLUser(amlUser);
+                }
+            }
+            return "Completed";
+        }
+        return "No user at this time";
     }
 }

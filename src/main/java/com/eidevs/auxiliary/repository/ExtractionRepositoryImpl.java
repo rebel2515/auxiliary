@@ -5,6 +5,7 @@
  */
 package com.eidevs.auxiliary.repository;
 
+import com.eidevs.auxiliary.model.AMLUsers;
 import com.eidevs.auxiliary.model.AccountNumberDump;
 import com.eidevs.auxiliary.model.DisableUsers;
 import com.eidevs.auxiliary.model.FTMissingToday;
@@ -292,5 +293,40 @@ public class ExtractionRepositoryImpl implements ExtractionRepository {
         em.remove(em.contains(tellerTemp) ? tellerTemp : em.merge(tellerTemp));
         em.flush();
         return tellerTemp;
+    }
+
+    @Override
+    public List<AMLUsers> allAMLUser() {
+        TypedQuery<AMLUsers> query = em.createQuery("SELECT c FROM AMLUsers c", AMLUsers.class);
+        List<AMLUsers> record = query.getResultList();
+        if (record.isEmpty()) {
+            return null;
+        }
+        return record;
+    }
+
+    @Override
+    @Transactional(transactionManager = "coreTransactionManager")
+    public void createUser(Users users) {
+        em.persist(users);
+        em.flush();
+    }
+
+    @Override
+    public Users getUserWithEmail(String email) {
+        TypedQuery<Users> query = em.createQuery("SELECT c FROM Users c WHERE c.email = :email", Users.class)
+                .setParameter("email", email);
+        List<Users> record = query.getResultList();
+        if (record.isEmpty()) {
+            return null;
+        }
+        return record.get(0);
+    }
+
+    @Override
+    @Transactional(transactionManager = "coreTransactionManager")
+    public void deleteAMLUser(AMLUsers amlUser) {
+        em.remove(em.contains(amlUser) ? amlUser : em.merge(amlUser));
+        em.flush();
     }
 }

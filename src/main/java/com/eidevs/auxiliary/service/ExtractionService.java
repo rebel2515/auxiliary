@@ -23,4 +23,6 @@ public interface ExtractionService {
     //String updateStmtRecordWithClosingBalance();
     
     String updateStmtRecordWithOpeningBalance();
+    
+    String createAMLUsers();
 }

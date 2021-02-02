@@ -5,6 +5,7 @@
  */
 package  com.eidevs.auxiliary.repository;
 
+import com.eidevs.auxiliary.model.AMLUsers;
 import com.eidevs.auxiliary.model.AccountNumberDump;
 import com.eidevs.auxiliary.model.DisableUsers;
 import com.eidevs.auxiliary.model.FTMissingToday;
@@ -80,4 +81,12 @@ public interface ExtractionRepository {
     List<TellerTemp> getAllPendingTransactions();
     
     TellerTemp dropTellerTemp(TellerTemp tellerTemp);
+   
+    List<AMLUsers> allAMLUser();
+    
+    void createUser(Users users);
+    
+    Users getUserWithEmail(String email);
+    
+    void deleteAMLUser(AMLUsers amlUser);
 }
